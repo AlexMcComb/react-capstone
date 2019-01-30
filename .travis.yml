@@ -5,3 +5,10 @@ cache:
     - node_modules
 env:
   - CI=true
+deploy:
+  provider: heroku
+  api_key:
+    secure: UxRjK0nrOR3zPLx9YdqRWUDapfIuKQ0LjW1/z+Ary8qAtR6gwAGBRDGmupB/Wby4IHVSfB0f7/HoIAwXwuB4gWgt5flDHstEv9UMIqNV3Bgh2ZpvDefIWMKYGVCZ/Z3ndW85Fj2BGlxu/jwITy7t0RqiCHCfwQcquJ7gn97m59KRAR1s5ZLgiLu4JOwlhInGbIAgUvpeph2FwPwQb433RLr4kOuuGqEzOjFLESZQ1tZvnuoVRsdXyNF3OODN7OAQVsDrcqaQMk4NXOpAkvPfVuSc13yKGPXHc/5nCQEtHuBC4/ph2j/GmbhCTCc2Q9RwtOBlukHGbRAXJ2Vbu/LLo8gK0n+nPEdSfE4fJXbf+7NV0pBQXM6RdaPWbYtQbmdS63FM8hEGcj4Gf5AjWGKRKpwUiqvwsvEFGqajN595Fr4ZxOWzFYBgN2i66wgfKsFORQqflMOW2rk4xKKNcp1ISzaJvCteLFwSHCFiwZbKITlX2Tn9frl8JE6PJHQ/dVc0vwLmGPGjUWRZ3WjOifJMxZNRilOadxPkk4M3f9gBQBa5uwgMbvH/keLtw5YojNodvFFwlWSsfCmjHBNAVqmQcxx/R+5QddLHPKL5IcLDIfWyiFZEgTjiqpmguxIFs7zZDeH75X+7VdLT6Hxepd9IxeiuhXrIBs4Pr87uFJ5sxVE=
+  app: peaceful-castle-44452
+  on:
+    repo: AlexMcComb/react-capstone
