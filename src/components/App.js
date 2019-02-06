@@ -16,8 +16,6 @@ export default class App extends Component {
     this.state = {
       lat: 40.75,
       lng: -112.4,
-      lat2: 40.6,
-      lng2: -112.46,
       zoom: 10,
       isLoaded: false,
       trails: []
@@ -26,7 +24,7 @@ export default class App extends Component {
 
   componentDidMount() {
     fetch(
-      "https://www.hikingproject.com/data/get-trails?lat=40.71&lon=-111.76&maxDistance=10&key=200414472-cec778ee06c27612a21b53d6a62c4e6f"
+      "https://www.hikingproject.com/data/get-trails?lat=40.71&lon=-111.76&maxResults=10&key=200414472-cec778ee06c27612a21b53d6a62c4e6f"
     )
       .then(res => res.json())
       .then(
@@ -58,10 +56,20 @@ export default class App extends Component {
     } else {
       return (
         <div>
-          <ul>
+          <ul className="sidebar">
             {trails.map(item => (
-              <li key={item.id}>
-                {item.name} {item.url}
+              <li key={item.id} className="polaroid">
+                <img src={item.imgMedium} alt="hike" />
+                <h2>{item.name}</h2>
+                <input id={item.id} className="toggle" type="checkbox" />
+                <label htmlFor={item.id} className="lbl-toggle">
+                  More Info
+                </label>
+                <div className="collapsible-content">
+                  <div className="content-inner">
+                    <p>{item.summary}</p>
+                  </div>
+                </div>
               </li>
             ))}
           </ul>
@@ -70,7 +78,7 @@ export default class App extends Component {
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
               url="http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png"
             />
-            <GeoJSON key={`geojson-01`} data={trails} />
+            <GeoJSON key={trails.id} data={trails} />
             <Marker position={position} icon={myIcon} />
           </Map>
         </div>
