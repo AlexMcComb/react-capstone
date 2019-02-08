@@ -1,7 +1,13 @@
 import React, { Component } from "react";
-import { Map, TileLayer, GeoJSON, Marker } from "react-leaflet";
+import { Map, GeoJSON, Marker } from "react-leaflet";
+import changeCoords from "./changeCoords";
 import L from "leaflet";
 import "./App.css";
+
+import MapboxLayer from "./MapboxLayer";
+
+const MAPBOX_ACCESS_TOKEN =
+  "pk.eyJ1IjoiYWxleG1jYyIsImEiOiJjam5pMWdtN3gwanQ1M3BxdDVuZGlyZXdkIn0.SlU2gCqByEwsz0pt7ocg8A";
 
 const myIcon = L.icon({
   iconUrl: "http://leafletjs.com/examples/custom-icons/leaf-green.png",
@@ -18,20 +24,29 @@ export default class App extends Component {
       lng: -112.4,
       zoom: 10,
       isLoaded: false,
-      trails: []
+      parks: [],
+      imageStatus: "loading"
     };
+  }
+
+  handleImageLoaded() {
+    this.setState({ imageStatus: "loaded" });
+  }
+
+  handleImageErrored() {
+    this.setState({ imageStatus: "failed to load" });
   }
 
   componentDidMount() {
     fetch(
-      "https://www.hikingproject.com/data/get-trails?lat=40.71&lon=-111.76&maxResults=10&key=200414472-cec778ee06c27612a21b53d6a62c4e6f"
+      "https://developer.nps.gov/api/v1/parks?stateCode=UT&fields=images&limit=50&api_key=ugi2889p0Blcnpbz4r7lIaJKIoeZDB5g5AH7FVfC"
     )
       .then(res => res.json())
       .then(
         result => {
           this.setState({
             isLoaded: true,
-            trails: result.trails
+            parks: result.data
           });
         },
         // Note: it's important to handle errors here
@@ -48,7 +63,8 @@ export default class App extends Component {
 
   render() {
     const position = [this.state.lat, this.state.lng];
-    const { error, isLoaded, trails } = this.state;
+    const { error, isLoaded, parks } = this.state;
+
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
@@ -57,29 +73,35 @@ export default class App extends Component {
       return (
         <div>
           <ul className="sidebar">
-            {trails.map(item => (
+            {parks.map(item => (
               <li key={item.id} className="polaroid">
-                <img src={item.imgMedium} alt="hike" />
+                <img
+                  src={item.images[1].url}
+                  alt="park"
+                  onLoad={this.handleImageLoaded.bind(this)}
+                  onError={this.handleImageErrored.bind(this)}
+                />
                 <h2>{item.name}</h2>
+                {item.latLong}
                 <input id={item.id} className="toggle" type="checkbox" />
                 <label htmlFor={item.id} className="lbl-toggle">
                   More Info
                 </label>
                 <div className="collapsible-content">
                   <div className="content-inner">
-                    <p>{item.summary}</p>
+                    <p>{item.description}</p>
                   </div>
                 </div>
               </li>
             ))}
           </ul>
           <Map className="map" center={position} zoom={this.state.zoom}>
-            <TileLayer
-              attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              url="http://{s}.tile.stamen.com/terrain/{z}/{x}/{y}.png"
+            <MapboxLayer
+              accessToken={MAPBOX_ACCESS_TOKEN}
+              style="mapbox://styles/mapbox/outdoors-v9"
             />
-            <GeoJSON key={trails.id} data={trails} />
-            <Marker position={position} icon={myIcon} />
+            <GeoJSON key={parks.id} data={parks} />
+            <Marker position={coords} icon={myIcon} />
           </Map>
         </div>
       );

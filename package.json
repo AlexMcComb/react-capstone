@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "leaflet": "^1.4.0",
+    "mapbox-gl-leaflet": "0.0.3",
+    "prop-types": "^15.6.2",
     "react": "^16.7.0",
     "react-dom": "^16.7.0",
     "react-leaflet": "^2.2.0",
