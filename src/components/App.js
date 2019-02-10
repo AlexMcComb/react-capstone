@@ -134,7 +134,7 @@ export default class App extends Component {
                     <p>{item.summary}</p>
                   </div>
                   <button
-                    key={item.id} //** */
+                    // key={item.id} //** */
                     disabled={this.state.disabled.indexOf(item.id) !== -1}
                     // disabled={this.state.disabled} //loop over button state to connect to disable boolean?
                     onClick={() =>
