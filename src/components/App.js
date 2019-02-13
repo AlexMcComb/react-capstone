@@ -21,28 +21,32 @@ export default class App extends Component {
     super(props);
     this.state = {
       lat: 40.75,
-      lng: -111.7,
+      lng: -111.5,
       zoom: 10,
       isLoaded: false,
       parks: [],
       todos: [],
       imageStatus: "loading",
-      disabled: []
-      // button: [{ id: "", disable: false }]
+      disabled: [],
+      key: "200414472-cec778ee06c27612a21b53d6a62c4e6f",
+      value: "",
+      star: ""
     };
+    this.handleChange = this.handleChange.bind(this);
   }
 
-  handleImageLoaded() {
-    this.setState({ imageStatus: "loaded" });
-  }
-
-  handleImageErrored() {
-    this.setState({ imageStatus: "failed to load" });
+  handleChange(event) {
+    event.preventDefault();
+    this.setState({ [event.target.name]: event.target.value });
   }
 
   componentDidMount() {
     fetch(
-      "https://www.hikingproject.com/data/get-trails?lat=40.782976&lon=-111.697815&maxDistance=25&maxResults=40&key=200414472-cec778ee06c27612a21b53d6a62c4e6f"
+      `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&maxDistance=${encodeURIComponent(
+        this.state.value
+      )}&minStars=${encodeURIComponent(
+        this.state.star
+      )}&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
     )
       .then(res => res.json())
       .then(
@@ -61,17 +65,31 @@ export default class App extends Component {
       );
   }
 
-  // checkButton = (id, display) => {
-  //   const arr = {this.state.button}
-  //   for (let i = 0; i < arr.length; i++) {
-  //     if (arr[i].includes(id)) {
-  //       let display = false;
-  //     } else {
-  //       let display = true;
-  //     }
-  //     console.log(arr);
-  //   }
-  // };
+  componentDidUpdate(prevState) {
+    if (this.state.value !== prevState.value)
+      fetch(
+        `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&maxDistance=${encodeURIComponent(
+          this.state.value
+        )}&minStars=${encodeURIComponent(
+          this.state.star
+        )}&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
+      )
+        .then(res => res.json())
+        .then(
+          result => {
+            this.setState({
+              isLoaded: true,
+              parks: result.trails
+            });
+          },
+          error => {
+            this.setState({
+              isLoaded: true,
+              error
+            });
+          }
+        );
+  }
 
   render() {
     const position = [this.state.lat, this.state.lng];
@@ -91,21 +109,19 @@ export default class App extends Component {
             </li>
           </ul>
           <ul className="sidebar">
+            <form>
+              <label>
+                maxDist
+                <input type="text" name="value" onChange={this.handleChange} />
+              </label>
+              <label>
+                stars
+                <input type="text" name="star" onChange={this.handleChange} />
+              </label>
+            </form>
             {parks.map(item => (
               <li key={item.id} className="polaroid">
-                <img
-                  src={item.imgMedium}
-                  alt="park"
-                  onLoad={this.handleImageLoaded.bind(this)}
-                  onError={this.handleImageErrored.bind(this)}
-                  onClick={() =>
-                    this.setState({
-                      lat: item.latitude,
-                      lng: item.longitude,
-                      zoom: zooms + 6
-                    })
-                  }
-                />
+                <img src={item.imgMedium} alt="park" />
                 <h2
                   onClick={() =>
                     this.setState({
@@ -118,15 +134,7 @@ export default class App extends Component {
                   {item.name}
                 </h2>
                 <input id={item.id} className="toggle" type="checkbox" />
-                <label
-                  htmlFor={item.id}
-                  className="lbl-toggle"
-                  // onClick={() =>
-                  //   this.setState({
-                  //     disabled: false
-                  //   })
-                  // }
-                >
+                <label htmlFor={item.id} className="lbl-toggle">
                   More Info
                 </label>
                 <div className="collapsible-content">
@@ -134,18 +142,11 @@ export default class App extends Component {
                     <p>{item.summary}</p>
                   </div>
                   <button
-                    // key={item.id} //** */
                     disabled={this.state.disabled.indexOf(item.id) !== -1}
-                    // disabled={this.state.disabled} //loop over button state to connect to disable boolean?
                     onClick={() =>
                       this.setState({
                         todos: [...this.state.todos, item.name],
                         disabled: [...this.state.disabled, item.id]
-                        // disabled: true
-                        // button: [
-                        //   ...this.state.button,
-                        //   { id: item.id, disable: true }
-                        // ]
                       })
                     }
                   >
@@ -160,6 +161,7 @@ export default class App extends Component {
             center={position}
             zoom={this.state.zoom}
             maxZoom={18}
+            minZoom={3}
           >
             <MapboxLayer
               accessToken={MAPBOX_ACCESS_TOKEN}
