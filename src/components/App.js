@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Map, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import "./App.css";
 
 import MapboxLayer from "./MapboxLayer";
@@ -21,32 +22,24 @@ export default class App extends Component {
     super(props);
     this.state = {
       lat: 40.75,
-      lng: -111.5,
+      lng: -111.85,
       zoom: 10,
       isLoaded: false,
       parks: [],
       todos: [],
       imageStatus: "loading",
       disabled: [],
-      key: "200414472-cec778ee06c27612a21b53d6a62c4e6f",
-      value: "",
-      star: ""
+      maxDist: "",
+      star: "",
+      maxRes: ""
     };
+    this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
-  }
-
-  handleChange(event) {
-    event.preventDefault();
-    this.setState({ [event.target.name]: event.target.value });
   }
 
   componentDidMount() {
     fetch(
-      `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&maxDistance=${encodeURIComponent(
-        this.state.value
-      )}&minStars=${encodeURIComponent(
-        this.state.star
-      )}&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
+      `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
     )
       .then(res => res.json())
       .then(
@@ -65,36 +58,44 @@ export default class App extends Component {
       );
   }
 
-  componentDidUpdate(prevState) {
-    if (this.state.value !== prevState.value)
-      fetch(
-        `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&maxDistance=${encodeURIComponent(
-          this.state.value
-        )}&minStars=${encodeURIComponent(
-          this.state.star
-        )}&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
-      )
-        .then(res => res.json())
-        .then(
-          result => {
-            this.setState({
-              isLoaded: true,
-              parks: result.trails
-            });
-          },
-          error => {
-            this.setState({
-              isLoaded: true,
-              error
-            });
-          }
-        );
+  doSommething() {
+    let map = this.refs.map.leafletElement;
+    map.invalidateSize();
+    fetch(
+      `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&maxDistance=${
+        this.state.maxDist
+      }&minStars=${this.state.star}&maxResults=${
+        this.state.maxRes
+      }&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
+    )
+      .then(res => res.json())
+      .then(
+        result => {
+          this.setState({
+            isLoaded: true,
+            parks: result.trails
+          });
+        },
+        error => {
+          this.setState({
+            isLoaded: true,
+            error
+          });
+        }
+      );
+  }
+  handleSubmit(e) {
+    this.setState({ [e.target.name]: e.target.value });
+    e.preventDefault();
+    this.doSommething();
+  }
+  handleChange(e) {
+    this.setState({ [e.target.name]: e.target.value });
   }
 
   render() {
     const position = [this.state.lat, this.state.lng];
     const { error, isLoaded, parks } = this.state;
-    const zooms = this.state.zoom;
 
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -109,15 +110,24 @@ export default class App extends Component {
             </li>
           </ul>
           <ul className="sidebar">
-            <form>
+            <form onSubmit={this.handleSubmit}>
               <label>
                 maxDist
-                <input type="text" name="value" onChange={this.handleChange} />
+                <input
+                  type="text"
+                  name="maxDist"
+                  onChange={this.handleChange}
+                />
+              </label>
+              <label>
+                maxRes
+                <input type="text" name="maxRes" onChange={this.handleChange} />
               </label>
               <label>
                 stars
                 <input type="text" name="star" onChange={this.handleChange} />
               </label>
+              <input type="submit" value="Submit" />
             </form>
             {parks.map(item => (
               <li key={item.id} className="polaroid">
@@ -127,7 +137,7 @@ export default class App extends Component {
                     this.setState({
                       lat: item.latitude,
                       lng: item.longitude,
-                      zoom: zooms + 6
+                      zoom: 16
                     })
                   }
                 >
@@ -157,11 +167,13 @@ export default class App extends Component {
             ))}
           </ul>
           <Map
+            style={{ height: "800px", marginLeft: "475px" }}
             className="map"
             center={position}
             zoom={this.state.zoom}
             maxZoom={18}
             minZoom={3}
+            ref="map"
           >
             <MapboxLayer
               accessToken={MAPBOX_ACCESS_TOKEN}
@@ -174,7 +186,7 @@ export default class App extends Component {
                 key={item.id}
               >
                 >
-                <Popup>
+                <Popup autoPan={false}>
                   <em>{item.name}</em> {item.conditionDetails}
                 </Popup>
               </Marker>
