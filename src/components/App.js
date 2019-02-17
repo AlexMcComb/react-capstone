@@ -27,7 +27,6 @@ export default class App extends Component {
       isLoaded: false,
       parks: [],
       todos: [],
-      imageStatus: "loading",
       disabled: [],
       maxDist: "",
       star: "",
@@ -35,6 +34,7 @@ export default class App extends Component {
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.mapItem = this.mapItem.bind(this);
   }
 
   componentDidMount() {
@@ -58,7 +58,7 @@ export default class App extends Component {
       );
   }
 
-  doSommething() {
+  filterTrails() {
     let map = this.refs.map.leafletElement;
     map.invalidateSize();
     fetch(
@@ -87,10 +87,25 @@ export default class App extends Component {
   handleSubmit(e) {
     this.setState({ [e.target.name]: e.target.value });
     e.preventDefault();
-    this.doSommething();
+    this.filterTrails();
   }
   handleChange(e) {
     this.setState({ [e.target.name]: e.target.value });
+  }
+
+  mapItem(item) {
+    this.setState({
+      lat: item.latitude,
+      lng: item.longitude,
+      zoom: 16
+    });
+  }
+
+  disableButton(item) {
+    this.setState({
+      todos: [...this.state.todos, { name: item.name, id: item.id }],
+      disabled: [...this.state.disabled, item.id]
+    });
   }
 
   render() {
@@ -104,11 +119,6 @@ export default class App extends Component {
     } else {
       return (
         <div>
-          <ul>
-            <li className="polaroid" ref="todo">
-              {this.state.todos}
-            </li>
-          </ul>
           <ul className="sidebar">
             <form onSubmit={this.handleSubmit}>
               <label>
@@ -133,13 +143,9 @@ export default class App extends Component {
               <li key={item.id} className="polaroid">
                 <img src={item.imgMedium} alt="park" />
                 <h2
-                  onClick={() =>
-                    this.setState({
-                      lat: item.latitude,
-                      lng: item.longitude,
-                      zoom: 16
-                    })
-                  }
+                  onClick={() => {
+                    this.mapItem(item);
+                  }}
                 >
                   {item.name}
                 </h2>
@@ -153,12 +159,18 @@ export default class App extends Component {
                   </div>
                   <button
                     disabled={this.state.disabled.indexOf(item.id) !== -1}
-                    onClick={() =>
-                      this.setState({
-                        todos: [...this.state.todos, item.name],
-                        disabled: [...this.state.disabled, item.id]
-                      })
-                    }
+                    onClick={() => {
+                      this.disableButton(item);
+                    }}
+
+                    //   let todos = [...this.state.todos];
+                    //   todos.push({ id: item.id, name: item.name });
+                    //   this.setState({
+                    //     todos,
+                    //     disabled: [...this.state.disabled, item.id]
+                    //   });
+                    //
+                    // }}
                   >
                     Add to Wishlist
                   </button>
