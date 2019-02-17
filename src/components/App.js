@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Map, Marker, Popup } from "react-leaflet";
+
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
@@ -8,6 +9,9 @@ import MapboxLayer from "./MapboxLayer";
 
 const MAPBOX_ACCESS_TOKEN =
   "pk.eyJ1IjoiYWxleG1jYyIsImEiOiJjam5pMWdtN3gwanQ1M3BxdDVuZGlyZXdkIn0.SlU2gCqByEwsz0pt7ocg8A";
+const API_KEY = `${process.env.REACT_APP_TRAILS_KEY}`;
+
+console.log(process.env.REACT_APP_TRAILS_KEY);
 
 const myIcon = L.icon({
   iconUrl:
@@ -25,7 +29,7 @@ export default class App extends Component {
       lng: -111.85,
       zoom: 10,
       isLoaded: false,
-      parks: [],
+      trails: [],
       todos: [],
       disabled: [],
       maxDist: "",
@@ -39,14 +43,14 @@ export default class App extends Component {
 
   componentDidMount() {
     fetch(
-      `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
+      `https://www.hikingproject.com/data/get-trails?lat=40.777&lon=-111.628&maxResults=2&key=${API_KEY}`
     )
       .then(res => res.json())
       .then(
         result => {
           this.setState({
             isLoaded: true,
-            parks: result.trails
+            trails: result.trails
           });
         },
         error => {
@@ -66,14 +70,14 @@ export default class App extends Component {
         this.state.maxDist
       }&minStars=${this.state.star}&maxResults=${
         this.state.maxRes
-      }&key=200414472-cec778ee06c27612a21b53d6a62c4e6f`
+      }&key=${API_KEY}`
     )
       .then(res => res.json())
       .then(
         result => {
           this.setState({
             isLoaded: true,
-            parks: result.trails
+            trails: result.trails
           });
         },
         error => {
@@ -110,7 +114,7 @@ export default class App extends Component {
 
   render() {
     const position = [this.state.lat, this.state.lng];
-    const { error, isLoaded, parks } = this.state;
+    const { error, isLoaded, trails } = this.state;
 
     if (error) {
       return <div>Error: {error.message}</div>;
@@ -139,7 +143,7 @@ export default class App extends Component {
               </label>
               <input type="submit" value="Submit" />
             </form>
-            {parks.map(item => (
+            {trails.map(item => (
               <li key={item.id} className="polaroid">
                 <img src={item.imgMedium} alt="park" />
                 <h2
@@ -191,7 +195,7 @@ export default class App extends Component {
               accessToken={MAPBOX_ACCESS_TOKEN}
               mapStyle="mapbox://styles/mapbox/outdoors-v9"
             />
-            {parks.map(item => (
+            {trails.map(item => (
               <Marker
                 position={[item.latitude, item.longitude]}
                 icon={myIcon}
